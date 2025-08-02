@@ -139,13 +139,6 @@ pub fn init_flash_sale(accounts: &[AccountInfo], instruction_data: &[u8]) -> Pro
         &deposit_binding
     );
 
-    pinocchio_system::instructions::Transfer {
-        from: owner,
-        to: token_deposit_pda,
-        lamports: 10_000_000,
-    }
-    .invoke()?;
-
     if *token_deposit_ata.try_borrow_lamports().unwrap() == 0{
 
         pinocchio_associated_token_account::instructions::Create {

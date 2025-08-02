@@ -1,6 +1,7 @@
 pub mod close_sale;
 pub mod get_token;
 pub mod init_flash_sale;
+pub mod utils;
 
 use pinocchio::{
     account_info::AccountInfo, default_allocator, default_panic_handler, entrypoint, msg,

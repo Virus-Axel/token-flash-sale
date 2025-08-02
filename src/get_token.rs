@@ -1,9 +1,9 @@
 use pinocchio::{
-    account_info::AccountInfo, cpi::invoke_signed, instruction::{AccountMeta, Instruction, Signer}, program_error::ProgramError, pubkey::find_program_address, seeds, ProgramResult
+    account_info::AccountInfo, cpi::invoke_signed, instruction::{AccountMeta, Instruction, Signer}, msg, program_error::ProgramError, pubkey::find_program_address, seeds, ProgramResult
 };
 use shank::{ShankInstruction, ShankType};
 
-use crate::init_flash_sale::{FlashSale, InitFlashSaleArgs};
+use crate::{init_flash_sale::{FlashSale, InitFlashSaleArgs}, utils::check_owner};
 use solana_program::pubkey::Pubkey as SPK;
 
 #[derive(Debug, Clone, ShankType)]
@@ -35,6 +35,16 @@ pub fn get_token(accounts: &[AccountInfo], instruction_data: &[u8]) -> ProgramRe
         lamports: 10_000_000,
     }
     .invoke()?;
+
+    if flash_sale_settings.mint_address != *token_mint.key(){
+        msg!("Unexpected token mint address");
+        return Err(ProgramError::InvalidArgument);
+    }
+    if flash_sale_settings.owner_address != *flash_sale_owner.key(){
+        msg!("Unexpected flash sale owner");
+        return Err(ProgramError::InvalidArgument);
+    }
+    check_owner(flash_sale_pda, crate::id())?;
 
     let stake_ix = spl_token_2022::instruction::transfer_checked(
         &SPK::new_from_array(*token_program.key()),
