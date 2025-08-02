@@ -14,6 +14,7 @@ use pinocchio::sysvars::clock::Clock;
 
 use solana_program::pubkey::Pubkey as SPK;
 
+use crate::get_token::GetTokenArgs;
 use crate::init_flash_sale::FlashSale;
 use crate::utils::check_owner;
 
@@ -47,6 +48,8 @@ pub fn close_sale(accounts: &[AccountInfo], instruction_data: &[u8]) -> ProgramR
     let system_program = accounts_iter.next().unwrap();
     let token_program = accounts_iter.next().unwrap();
     
+    let instruction_args = GetTokenArgs::try_from(instruction_data).map_err(|_| ProgramError::InvalidInstructionData)?;
+
     let args = {
         let flash_sale_data = flash_sale_pda.try_borrow_data()?;
         FlashSale::try_from(flash_sale_data.as_ref())
@@ -102,8 +105,8 @@ pub fn close_sale(accounts: &[AccountInfo], instruction_data: &[u8]) -> ProgramR
         &SPK::new_from_array(*receiver_token_ata.key()),
         &SPK::new_from_array(*token_deposit_pda.key()),
         &[],
-        1,
-        9,
+        instruction_args.amount,
+        instruction_args.decimals,
     )
     .unwrap();
 

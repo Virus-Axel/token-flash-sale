@@ -9,6 +9,21 @@ use solana_program::pubkey::Pubkey as SPK;
 #[derive(Debug, Clone, ShankType)]
 pub struct GetTokenArgs {
     pub amount: u64,
+    pub decimals: u8,
+}
+
+impl TryFrom<&[u8]> for GetTokenArgs {
+    type Error = String;
+
+    fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
+        let amount = u64::from_le_bytes(data[0..8].try_into().unwrap());
+        let decimals = u8::from_le_bytes(data[8..9].try_into().unwrap());
+
+        Ok(GetTokenArgs {
+            amount,
+            decimals
+        })
+    }
 }
 
 
@@ -29,10 +44,12 @@ pub fn get_token(accounts: &[AccountInfo], instruction_data: &[u8]) -> ProgramRe
     let flash_sale_settings = FlashSale::try_from(flash_sale_data.as_ref())
         .map_err(|_| ProgramError::InvalidInstructionData)?;
 
+    let args = GetTokenArgs::try_from(instruction_data).map_err(|_| ProgramError::InvalidInstructionData)?;
+
     pinocchio_system::instructions::Transfer {
         from: payer,
         to: flash_sale_owner,
-        lamports: 10_000_000,
+        lamports: flash_sale_settings.price.checked_mul(args.amount).unwrap(),
     }
     .invoke()?;
 
@@ -53,8 +70,8 @@ pub fn get_token(accounts: &[AccountInfo], instruction_data: &[u8]) -> ProgramRe
         &SPK::new_from_array(*receiver_token_ata.key()),
         &SPK::new_from_array(*token_deposit_pda.key()),
         &[],
-        1,
-        9,
+        args.amount,
+        args.decimals,
     )
     .unwrap();
 

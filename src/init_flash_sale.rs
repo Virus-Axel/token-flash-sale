@@ -82,6 +82,7 @@ pub struct InitFlashSaleArgs {
     pub initial_price: u64,
     pub sale_duration: u64,
     pub amount: u64,
+    pub decimals: u8,
     pub item_name: String,
 }
 
@@ -92,10 +93,11 @@ impl TryFrom<&[u8]> for InitFlashSaleArgs {
         let initial_price = u64::from_le_bytes(data[0..8].try_into().unwrap());
         let sale_duration = u64::from_le_bytes(data[8..16].try_into().unwrap());
         let amount = u64::from_le_bytes(data[16..24].try_into().unwrap());
+        let decimals = u8::from_le_bytes(data[24..25].try_into().unwrap());
 
-        let name_len = u32::from_le_bytes(data[24..28].try_into().unwrap()) as usize;
+        let name_len = u32::from_le_bytes(data[25..29].try_into().unwrap()) as usize;
 
-        let item_name = data[28..28 + name_len]
+        let item_name = data[29..29 + name_len]
             .to_vec()
             .into_iter()
             .map(|b| b as char)
@@ -105,6 +107,7 @@ impl TryFrom<&[u8]> for InitFlashSaleArgs {
             initial_price,
             sale_duration,
             amount,
+            decimals,
             item_name,
         })
     }
@@ -209,8 +212,8 @@ pub fn init_flash_sale(accounts: &[AccountInfo], instruction_data: &[u8]) -> Pro
         &SPK::new_from_array(*token_deposit_ata.key()),
         &SPK::new_from_array(*owner.key()),
         &[],
-        1,
-        9,
+        args.amount,
+        args.decimals,
     )
     .unwrap();
 

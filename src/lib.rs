@@ -46,7 +46,7 @@ pub enum CloseSale {
   #[account(8, name="associated_token_program", desc = "Assosiated token program")]
   #[account(9, name="Sysvar Clock", desc = "Sysvar Clock")]
   #[account(10, name="Sysvar Rent", desc = "Sysvar Rent")]
-  CloseSale,
+  CloseSale(GetTokenArgs),
 
   #[account(0, writable, signer, name="payer", desc="Payer of the Sol")]
   #[account(1, writable, name="receiver_token_ata", desc="Token account that will receivet the tokens")]
