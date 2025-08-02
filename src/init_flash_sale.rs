@@ -110,24 +110,6 @@ impl TryFrom<&[u8]> for InitFlashSaleArgs {
     }
 }
 
-#[derive(Debug, Clone, ShankInstruction)]
-#[rustfmt::skip]
-pub enum InitInstruction {
-    #[account(0, writable, signer, name="owner", desc="Owner of the flash sale")]
-    #[account(1, writable, name="token_mint", desc="Token mint address of the item being sold")]
-    #[account(2, writable, name="source_token_account", desc="Token account with tokens to supply for the sale")]
-    #[account(3, writable, name="token_deposit_pda", desc="Account to hold tokens for the sale. Seeds = [\"deposit\", \"item_name\", owner]")]
-    #[account(4, writable, name="token_deposit_ata", desc="Associated token account for token_deposit_pda.")]
-    #[account(5, writable, name="flash_sale_pda", desc="Account to hold flash sale config and state. Seeds = [\"sale\", \"item_name\", owner]")]
-    #[account(6, name="system_program", desc = "System program.")]
-    #[account(7, name="token_program", desc = "Token program")]
-    #[account(8, name="associated_token_program", desc = "Assosiated token program")]
-    #[account(9, name="Sysvar Clock", desc = "Sysvar Clock")]
-    #[account(10, name="Sysvar Rent", desc = "Sysvar Rent")]
-
-    InitInstruction(InitFlashSaleArgs),
-}
-
 pub fn init_flash_sale(accounts: &[AccountInfo], instruction_data: &[u8]) -> ProgramResult {
     let accounts_iter = &mut accounts.iter();
     
@@ -144,7 +126,7 @@ pub fn init_flash_sale(accounts: &[AccountInfo], instruction_data: &[u8]) -> Pro
         .map_err(|_| ProgramError::InvalidInstructionData)?;
 
     let expected_deposit_account = find_program_address(
-        &[b"deposit", args.item_name.as_ref(), owner.key()],
+        &[b"deposit", args.item_name.as_ref(), token_mint.key(), owner.key()],
         &crate::id(),
     );
 
@@ -152,6 +134,7 @@ pub fn init_flash_sale(accounts: &[AccountInfo], instruction_data: &[u8]) -> Pro
     let stake_seeds = seeds!(
         b"deposit",
         args.item_name.as_bytes(),
+        token_mint.key(),
         owner.key(),
         &deposit_binding
     );
@@ -163,15 +146,19 @@ pub fn init_flash_sale(accounts: &[AccountInfo], instruction_data: &[u8]) -> Pro
     }
     .invoke()?;
 
-    pinocchio_associated_token_account::instructions::Create {
-        funding_account: owner,
-        account: token_deposit_ata,
-        wallet: token_deposit_pda,
-        mint: token_mint,
-        system_program,
-        token_program,
+    if *token_deposit_ata.try_borrow_lamports().unwrap() == 0{
+
+        pinocchio_associated_token_account::instructions::Create {
+            funding_account: owner,
+            account: token_deposit_ata,
+            wallet: token_deposit_pda,
+            mint: token_mint,
+            system_program,
+            token_program,
+        }
+        .invoke_signed(&[Signer::from(&stake_seeds)])?;
+
     }
-    .invoke_signed(&[Signer::from(&stake_seeds)])?;
 
     let clock = Clock::get().unwrap();
 
@@ -179,7 +166,7 @@ pub fn init_flash_sale(accounts: &[AccountInfo], instruction_data: &[u8]) -> Pro
     let minimum_balance = rent.minimum_balance(FLASH_SALE_ACCOUNT_SIZE as usize);
 
     let expected_sale_account = find_program_address(
-        &[b"sale", args.item_name.as_ref(), owner.key()],
+        &[b"sale", args.item_name.as_ref(), token_mint.key(), owner.key()],
         &crate::id(),
     );
 
@@ -187,18 +174,29 @@ pub fn init_flash_sale(accounts: &[AccountInfo], instruction_data: &[u8]) -> Pro
     let sale_seeds = seeds!(
         b"sale",
         args.item_name.as_bytes(),
+        token_mint.key(),
         owner.key(),
         &sale_binding
     );
 
-    pinocchio_system::instructions::CreateAccount {
-        from: owner,
-        to: flash_sale_pda,
-        space: FLASH_SALE_ACCOUNT_SIZE as u64,
-        lamports: minimum_balance,
-        owner: &crate::id(),
+    if flash_sale_pda.owner() == &crate::id(){
+        pinocchio_system::instructions::Transfer {
+            from: owner,
+            to: flash_sale_pda,
+            lamports: minimum_balance,
+        }
+        .invoke()?;
     }
-    .invoke_signed(&[Signer::from(&sale_seeds)])?;
+    else{
+        pinocchio_system::instructions::CreateAccount {
+            from: owner,
+            to: flash_sale_pda,
+            space: FLASH_SALE_ACCOUNT_SIZE as u64,
+            lamports: minimum_balance,
+            owner: &crate::id(),
+        }
+        .invoke_signed(&[Signer::from(&sale_seeds)])?;
+    }
 
     let mut flash_sale_data = flash_sale_pda.try_borrow_mut_data()?;
 

@@ -11,24 +11,6 @@ pub struct GetTokenArgs {
     pub amount: u64,
 }
 
-#[derive(Debug, Clone, ShankInstruction)]
-#[rustfmt::skip]
-pub enum GetToken {
-    #[account(0, writable, signer, name="payer", desc="Payer of the Sol")]
-    #[account(1, writable, name="receiver_token_ata", desc="Token account that will receivet the tokens")]
-    #[account(2, writable, name="token_mint", desc="Token mint address of the item to get")]
-    #[account(3, writable, name="token_deposit_pda", desc="Account that holds tokens for the sale. Seeds = [\"deposit\", \"item_name\", owner]")]
-    #[account(4, writable, name="token_deposit_ata", desc="Associated token account for token_deposit_pda.")]
-    #[account(5, writable, name="flash_sale_owner", desc="Owner Pubkey of the flash sale owner.")]
-    #[account(6, writable, name="flash_sale_pda", desc="Account that holds information about the sale. Seeds = [\"sale\", \"item_name\", owner]")]
-    #[account(7, name="system_program", desc = "System program.")]
-    #[account(8, name="token_program", desc = "Token program")]
-    #[account(9, name="associated_token_program", desc = "Assosiated token program")]
-    #[account(10, name="Sysvar Clock", desc = "Sysvar Clock")]
-    #[account(11, name="Sysvar Rent", desc = "Sysvar Rent")]
-
-    GetToken(GetTokenArgs),
-}
 
 pub fn get_token(accounts: &[AccountInfo], instruction_data: &[u8]) -> ProgramResult {
     let accounts_iter = &mut accounts.iter();
@@ -83,7 +65,7 @@ pub fn get_token(accounts: &[AccountInfo], instruction_data: &[u8]) -> ProgramRe
     };
 
     let expected_deposit_account = find_program_address(
-        &[b"deposit", flash_sale_settings.item_name.as_ref(), token_deposit_pda.key()],
+        &[b"deposit", flash_sale_settings.item_name.as_ref(), token_mint.key(), token_deposit_pda.key()],
         &crate::id(),
     );
 
@@ -91,6 +73,7 @@ pub fn get_token(accounts: &[AccountInfo], instruction_data: &[u8]) -> ProgramRe
     let deposit_seeds = seeds!(
         b"deposit",
         flash_sale_settings.item_name.as_bytes(),
+        token_mint.key(),
         token_deposit_pda.key(),
         &deposit_binding
     );

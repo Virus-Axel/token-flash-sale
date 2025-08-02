@@ -3,119 +3,6 @@
   "name": "token_flash_sale",
   "instructions": [
     {
-      "name": "GetToken",
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true,
-          "docs": [
-            "Payer of the Sol"
-          ]
-        },
-        {
-          "name": "receiverTokenAta",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "Token account that will receivet the tokens"
-          ]
-        },
-        {
-          "name": "tokenMint",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "Token mint address of the item to get"
-          ]
-        },
-        {
-          "name": "tokenDepositPda",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "Account that holds tokens for the sale. Seeds = [\"deposit\", \"item_name\", owner]"
-          ]
-        },
-        {
-          "name": "tokenDepositAta",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "Associated token account for token_deposit_pda."
-          ]
-        },
-        {
-          "name": "flashSaleOwner",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "Owner Pubkey of the flash sale owner."
-          ]
-        },
-        {
-          "name": "flashSalePda",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "Account that holds information about the sale. Seeds = [\"sale\", \"item_name\", owner]"
-          ]
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "System program."
-          ]
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "Token program"
-          ]
-        },
-        {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "Assosiated token program"
-          ]
-        },
-        {
-          "name": "sysvarClock",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "Sysvar Clock"
-          ]
-        },
-        {
-          "name": "sysvarRent",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "Sysvar Rent"
-          ]
-        }
-      ],
-      "args": [
-        {
-          "name": "getTokenArgs",
-          "type": {
-            "defined": "GetTokenArgs"
-          }
-        }
-      ],
-      "discriminant": {
-        "type": "u8",
-        "value": 0
-      }
-    },
-    {
       "name": "InitInstruction",
       "accounts": [
         {
@@ -147,7 +34,7 @@
           "isMut": true,
           "isSigner": false,
           "docs": [
-            "Account to hold tokens for the sale. Seeds = [\"deposit\", \"item_name\", owner]"
+            "Account to hold tokens for the sale. Seeds = [\"deposit\", \"item_name\", token_mint, owner]"
           ]
         },
         {
@@ -163,7 +50,7 @@
           "isMut": true,
           "isSigner": false,
           "docs": [
-            "Account to hold flash sale config and state. Seeds = [\"sale\", \"item_name\", owner]"
+            "Account to hold flash sale config and state. Seeds = [\"sale\", \"item_name\", token_mint, owner]"
           ]
         },
         {
@@ -218,6 +105,217 @@
       "discriminant": {
         "type": "u8",
         "value": 0
+      }
+    },
+    {
+      "name": "CloseSale",
+      "accounts": [
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true,
+          "docs": [
+            "Owner of the flash sale"
+          ]
+        },
+        {
+          "name": "receiverTokenAta",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Token account that will receivet the tokens"
+          ]
+        },
+        {
+          "name": "tokenMint",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Token mint address of the item to get"
+          ]
+        },
+        {
+          "name": "tokenDepositPda",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Account to hold tokens for the sale. Seeds = [\"deposit\", \"item_name\", token_mint, owner]"
+          ]
+        },
+        {
+          "name": "tokenDepositAta",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Associated token account for token_deposit_pda."
+          ]
+        },
+        {
+          "name": "flashSalePda",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Account to hold flash sale config and state. Seeds = [\"sale\", \"item_name\", token_mint, owner]"
+          ]
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "System program."
+          ]
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Token program"
+          ]
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Assosiated token program"
+          ]
+        },
+        {
+          "name": "sysvarClock",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Sysvar Clock"
+          ]
+        },
+        {
+          "name": "sysvarRent",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Sysvar Rent"
+          ]
+        }
+      ],
+      "args": [],
+      "discriminant": {
+        "type": "u8",
+        "value": 1
+      }
+    },
+    {
+      "name": "GetToken",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true,
+          "docs": [
+            "Payer of the Sol"
+          ]
+        },
+        {
+          "name": "receiverTokenAta",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Token account that will receivet the tokens"
+          ]
+        },
+        {
+          "name": "tokenMint",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Token mint address of the item to get"
+          ]
+        },
+        {
+          "name": "tokenDepositPda",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Account that holds tokens for the sale. Seeds = [\"deposit\", \"item_name\", token_mint, owner]"
+          ]
+        },
+        {
+          "name": "tokenDepositAta",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Associated token account for token_deposit_pda."
+          ]
+        },
+        {
+          "name": "flashSaleOwner",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Owner Pubkey of the flash sale owner."
+          ]
+        },
+        {
+          "name": "flashSalePda",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Account that holds information about the sale. Seeds = [\"sale\", \"item_name\", token_mint, owner]"
+          ]
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "System program."
+          ]
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Token program"
+          ]
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Assosiated token program"
+          ]
+        },
+        {
+          "name": "sysvarClock",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Sysvar Clock"
+          ]
+        },
+        {
+          "name": "sysvarRent",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Sysvar Rent"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "getTokenArgs",
+          "type": {
+            "defined": "GetTokenArgs"
+          }
+        }
+      ],
+      "discriminant": {
+        "type": "u8",
+        "value": 2
       }
     }
   ],
