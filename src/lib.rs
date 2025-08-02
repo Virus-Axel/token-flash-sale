@@ -1,4 +1,5 @@
 pub mod init_flash_sale;
+pub mod get_token;
 
 use pinocchio::{
   account_info::AccountInfo, default_allocator, default_panic_handler, entrypoint, msg, program_entrypoint, program_error::ProgramError, pubkey::Pubkey, ProgramResult, MAX_TX_ACCOUNTS
@@ -18,6 +19,7 @@ pub fn process_instruction(
 ) -> ProgramResult {
   match instruction_data[0]{
     0 => return init_flash_sale::init_flash_sale(accounts, &instruction_data[1..]),
+    1 => return get_token::get_token(accounts, &instruction_data[1..]),
     _ => return Err(ProgramError::InvalidInstructionData),
   };
 }
