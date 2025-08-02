@@ -16,7 +16,7 @@ use solana_program::pubkey::Pubkey as SPK;
 
 use crate::get_token::GetTokenArgs;
 use crate::init_flash_sale::FlashSale;
-use crate::utils::check_owner;
+use crate::utils::{check_address, check_address_is_any, check_owner};
 
 fn deinit_account_if_exists(account: &AccountInfo, receiver: &AccountInfo, signers: &[Signer]) -> ProgramResult {
     let lamports = *account.try_borrow_lamports().unwrap();
@@ -68,6 +68,8 @@ pub fn close_sale(accounts: &[AccountInfo], instruction_data: &[u8]) -> ProgramR
         msg!("Unexpected flash sale owner");
         return Err(ProgramError::InvalidArgument);
     }
+    check_address(system_program, pinocchio_system::id())?;
+    check_address_is_any(token_program, &[pinocchio_token::id(), spl_token_2022::id().to_bytes()])?;
     check_owner(flash_sale_pda, crate::id())?;
 
     let expected_deposit_account = find_program_address(

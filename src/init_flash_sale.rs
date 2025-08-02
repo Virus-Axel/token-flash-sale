@@ -13,6 +13,8 @@ use pinocchio::sysvars::clock::Clock;
 
 use solana_program::pubkey::Pubkey as SPK;
 
+use crate::utils::{check_address, check_address_is_any};
+
 #[derive(Clone, ShankAccount)]
 pub struct FlashSale {
     pub item_name: String,
@@ -124,9 +126,14 @@ pub fn init_flash_sale(accounts: &[AccountInfo], instruction_data: &[u8]) -> Pro
     let flash_sale_pda = accounts_iter.next().unwrap();
     let system_program = accounts_iter.next().unwrap();
     let token_program = accounts_iter.next().unwrap();
+    let associated_token_program = accounts_iter.next().unwrap();
 
     let args = InitFlashSaleArgs::try_from(instruction_data)
         .map_err(|_| ProgramError::InvalidInstructionData)?;
+
+    check_address(system_program, pinocchio_system::id())?;
+    check_address(associated_token_program, pinocchio_associated_token_account::id())?;
+    check_address_is_any(token_program, &[pinocchio_token::id(), spl_token_2022::id().to_bytes()])?;
 
     let expected_deposit_account = find_program_address(
         &[b"deposit", args.item_name.as_ref(), token_mint.key(), owner.key()],

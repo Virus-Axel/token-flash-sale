@@ -3,7 +3,7 @@ use pinocchio::{
 };
 use shank::{ShankInstruction, ShankType};
 
-use crate::{init_flash_sale::{FlashSale, InitFlashSaleArgs}, utils::check_owner};
+use crate::{init_flash_sale::{FlashSale, InitFlashSaleArgs}, utils::{check_address, check_address_is_any, check_owner}};
 use solana_program::pubkey::Pubkey as SPK;
 
 #[derive(Debug, Clone, ShankType)]
@@ -61,6 +61,8 @@ pub fn get_token(accounts: &[AccountInfo], instruction_data: &[u8]) -> ProgramRe
         msg!("Unexpected flash sale owner");
         return Err(ProgramError::InvalidArgument);
     }
+    check_address(system_program, pinocchio_system::id())?;
+    check_address_is_any(token_program, &[pinocchio_token::id(), spl_token_2022::id().to_bytes()])?;
     check_owner(flash_sale_pda, crate::id())?;
 
     let stake_ix = spl_token_2022::instruction::transfer_checked(
