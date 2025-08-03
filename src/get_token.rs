@@ -94,7 +94,7 @@ pub fn get_token(accounts: &[AccountInfo], instruction_data: &[u8]) -> ProgramRe
     };
 
     let expected_deposit_account = find_program_address(
-        &[b"deposit", flash_sale_settings.item_name.as_ref(), token_mint.key(), token_deposit_pda.key()],
+        &[b"deposit", flash_sale_settings.item_name.as_ref(), token_mint.key(), flash_sale_owner.key()],
         &crate::id(),
     );
 
@@ -103,7 +103,7 @@ pub fn get_token(accounts: &[AccountInfo], instruction_data: &[u8]) -> ProgramRe
         b"deposit",
         flash_sale_settings.item_name.as_bytes(),
         token_mint.key(),
-        token_deposit_pda.key(),
+        flash_sale_owner.key(),
         &deposit_binding
     );
 
